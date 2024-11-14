@@ -45,6 +45,8 @@ function Home() {
       setConnectedWithInternet(true);
       socket.connect(); 
       socket.emit('userReconnected', { _id: loggedInUser._id });
+      getHistory(loggedInUser._id)
+
     };
 
     window.addEventListener('offline', handleOffline);
