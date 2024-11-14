@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { io } from 'socket.io-client';
 import ting from '../assets/pop.mp3'
-// const socket = io('https://srorm-3.onrender.com');
 const socket = io('https://messanger-1-uudi.onrender.com', {
   reconnection: true,
   reconnectionAttempts: 5,
@@ -30,8 +29,32 @@ function Home() {
   const [previousMessages, setPreviousMessages] = useState([]);
   const [recipient, setRecipient] = useState({})
   const [receiver, setReceiver] = useState({})
+  const [connectedWithInternet, setConnectedWithInternet] = useState(navigator.onLine);
 
   const audio = new Audio(ting)
+
+  useEffect(() => {
+    const handleOffline = () => {
+      console.log('Disconnected from internet');
+      setConnectedWithInternet(false);
+      socket.disconnect();
+    };
+
+    const handleOnline = () => {
+      console.log('Reconnected to internet');
+      setConnectedWithInternet(true);
+      socket.connect(); 
+      socket.emit('userReconnected', { _id: loggedInUser._id });
+    };
+
+    window.addEventListener('offline', handleOffline);
+    window.addEventListener('online', handleOnline);
+
+    return () => {
+      window.removeEventListener('offline', handleOffline);
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [loggedInUser]);
 
   useEffect(() => { console.log(globalMsgObject) }, [globalMsgObject])
 
