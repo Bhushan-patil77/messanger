@@ -3,9 +3,9 @@ import { io } from 'socket.io-client';
 import ting from '../assets/pop.mp3'
 const socket = io('https://messanger-1-uudi.onrender.com', {
   reconnection: true,
-  reconnectionAttempts: 5,
+  reconnectionAttempts: 2,
   reconnectionDelay: 1000,
-  reconnectionDelayMax: 5000,
+  reconnectionDelayMax: 2000,
 });
 
 
