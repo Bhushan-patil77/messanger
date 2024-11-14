@@ -28,7 +28,7 @@ function Home() {
 
   const audio = new Audio(ting)
 
-  useEffect(()=>{console.log(globalMsgObject)},[globalMsgObject])
+  useEffect(()=>{console.log(unreadMsgObja)},[unreadMsgObj])
 
   useEffect(() => {
     const handleOffline = () => {
