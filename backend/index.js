@@ -67,6 +67,8 @@ io.on('connection', (socket) => {
   socket.on('sendMessage', async (msgObject) => {
     const receiverId = msgObject.receiver._id;
     const receiverSocketId = users.get(receiverId);
+    receiverSocketId ? msgObject.read=true : msgObject.read=false
+    console.log(msgObject)
     const newMsg = new messageModel(msgObject);
     const result = await newMsg.save();
     
