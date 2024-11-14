@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { io } from 'socket.io-client';
 import ting from '../assets/pop.mp3'
 // const socket = io('https://srorm-3.onrender.com');
-const socket = io('http://localhost:5000', {
+const socket = io('https://messanger-1-uudi.onrender.com', {
   reconnection: true,
   reconnectionAttempts: 5,
   reconnectionDelay: 1000,
