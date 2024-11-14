@@ -63,6 +63,7 @@ function Home() {
     });
 
     socket.on('reconnect', () => {
+      console.log('user reconnected')
       socket.emit('userReconnected', { _id: loggedInUser._id });
     });
 
@@ -98,7 +99,8 @@ function Home() {
     promise.then((socketId) => { socket.emit('userConnected', { _id: loggedInUser._id }) })
 
 
-    socket.on('userDisconnected', ({ _id }) => {
+    socket.on('userDisconnected', ({ _id, users }) => {
+      console.log(users)
       setGlobalMsgObject((prevGlobalMsgObject) => {
         const updatedGlobalObj = prevGlobalMsgObject.map((obj) => {
           if (obj.user._id === _id) {
@@ -117,7 +119,8 @@ function Home() {
       })
     })
 
-    socket.on('userConnected', ({ _id }) => {
+    socket.on('userConnected', ({ _id, users }) => {
+      console.log(users)
       setGlobalMsgObject((prevGlobalMsgObject) => {
         const updatedGlobalObj = prevGlobalMsgObject.map((obj) => {
           if (obj.user._id === _id) {
