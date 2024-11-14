@@ -48,13 +48,13 @@ io.on('connection', (socket) => {
   socket.on('userConnected', async ({ _id }) => {
     users.set(_id, socket.id);
     socket.broadcast.emit('userConnected', {_id:_id, users: Object.fromEntries(users.entries())})
-    const updatedUser = await userModel.findByIdAndUpdate( _id, { $set: { status: 'online' } },{ new: true });
+    const updatedUser = await userModel.findByIdAndUpdate( _id, { $set: { status: 'online', socketId:socket.id } },{ new: true });
   })
 
   socket.on('userReconnected', async ({ _id }) => {
     users.set(_id, socket.id);
     socket.broadcast.emit('userConnected', {_id:_id, users: Object.fromEntries(users.entries())})
-    const updatedUser = await userModel.findByIdAndUpdate( _id, { $set: { status: 'online' } },{ new: true });
+    const updatedUser = await userModel.findByIdAndUpdate( _id, { $set: { status: 'online', socketId:socket.id } },{ new: true });
   })
 
 
@@ -85,7 +85,7 @@ io.on('connection', (socket) => {
       {
         users.delete(key);
         socket.broadcast.emit('userDisconnected', {_id:key, users: Object.fromEntries(users.entries())})
-        const updatedUser = await userModel.findByIdAndUpdate( key, { $set: { status: 'online' } },{ new: true });
+        const updatedUser = await userModel.findByIdAndUpdate( key, { $set: { status: 'offline', socketId:'' } },{ new: true });
 
       }
     });
