@@ -27,7 +27,7 @@ app.use(express.urlencoded({ extended: true })); // to parse URL-encoded request
 
 app.use(cors({
   origin: '*', // your frontend origin
-
+ 
 }));
 const io = new Server(server, {
   cors: {

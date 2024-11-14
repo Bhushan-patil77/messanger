@@ -58,7 +58,7 @@ function Home() {
     };
   }, [loggedInUser]);
 
-  useEffect(() => { console.log(globalMsgObject) }, [globalMsgObject])
+  useEffect(() => { console.log(clickedUser) }, [clickedUser])
 
 
   useEffect(() => {
@@ -294,15 +294,7 @@ function Home() {
   }, [recipient])
 
 
-  useEffect(() => {   
-
-   
-
-    return () => {
-      socket.off('receiveMessage');
-    };
-  }, []);
-
+ 
 
   const sendMessage = () => {
 
@@ -393,7 +385,18 @@ function Home() {
   const getHistory = (_id) => {
     fetch(`${backendUrl}/getHistory`, { method: 'post', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ _id: _id }) })
       .then((response) => { return response.json() })
-      .then((data) => { setGlobalMsgObject(data.data); setUnreadMsgObj(data.loggedInUserInfo.unreadMessages != undefined ? data.loggedInUserInfo.unreadMessages : {}) })
+      .then((data) => {
+         setGlobalMsgObject(data.data);
+         setUnreadMsgObj(data.loggedInUserInfo.unreadMessages != undefined ? data.loggedInUserInfo.unreadMessages : {})
+        data.data.map((obj)=>{
+          if(obj.user._id===clickedUser)
+          {
+            setPreviousMessages(obj.messages)
+          }
+         
+        })
+        
+         })
   }
 
   const getPreviousMessages = () => {
