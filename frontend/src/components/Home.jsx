@@ -16,13 +16,8 @@ function Home() {
   const clickedUser = localStorage.getItem('clickedUser')
   const [recentChats, setRecentChats] = useState([])
   const [globalMsgObject, setGlobalMsgObject] = useState([])
-
-
   const [unreadMsgObj, setUnreadMsgObj] = useState({})
-
   const [clickedRecentChat, setClickedRecentChat] = useState({})
-
-
   const [clickedUserInfo, setClickedUserInfo] = useState({})
   const [searchedUsers, setSearchedUsers] = useState([]);
   const [message, setMessage] = useState('');
@@ -32,6 +27,8 @@ function Home() {
   const [connectedWithInternet, setConnectedWithInternet] = useState(navigator.onLine);
 
   const audio = new Audio(ting)
+
+  useEffect(()=>{console.log(globalMsgObject)},[globalMsgObject])
 
   useEffect(() => {
     const handleOffline = () => {
