@@ -17,7 +17,8 @@ const messageSchema = new mongoose.Schema({
         socketId: String,
         status: String,
     } ,
-    content: String
+    content: String,
+    read:Boolean
 }, { timestamps: true });
 const messageModel = mongoose.model('message', messageSchema)
 
