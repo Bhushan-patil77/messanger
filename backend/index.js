@@ -67,10 +67,10 @@ io.on('connection', (socket) => {
   socket.on('sendMessage', async (msgObject) => {
     const receiverId = msgObject.receiver._id;
     const receiverSocketId = users.get(receiverId);
-
+    const newMsg = new messageModel(msgObject);
+    const result = await newMsg.save();
+    
     if (receiverSocketId) {
-      const newMsg = new messageModel(msgObject);
-      const result = await newMsg.save();
       socket.to(receiverSocketId).emit('receiveMessage', result);
     } else {
       console.log(`User with ID ${receiverId} is not connected`);

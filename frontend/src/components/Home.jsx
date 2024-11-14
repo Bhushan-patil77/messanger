@@ -298,8 +298,6 @@ function Home() {
 
   const sendMessage = () => {
 
-    console.log('sending msg to ' + clickedUserInfo.username + ' with socket id ' + clickedUserInfo._id)
-
     if (message && recipient._id) {
 
       const msgObj = {
