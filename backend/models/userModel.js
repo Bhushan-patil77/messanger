@@ -8,8 +8,8 @@ const userSchema = new mongoose.Schema({
     status: String,
     recentChats: Array,
     lastSeen: String,
-    unreadMessages: {
-      type: Object,  // Using Object to store random _id as key
+    missedMessages: {
+      type: mongoose.Schema.Types.Mixed,
       default: {}
     }
   });

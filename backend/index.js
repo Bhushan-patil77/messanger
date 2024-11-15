@@ -47,13 +47,19 @@ io.on('connection', (socket) => {
 
   socket.on('userConnected', async ({ _id }) => {
     users.set(_id, socket.id);
-    socket.broadcast.emit('userConnected', {_id:_id, users: Object.fromEntries(users.entries())})
+    socket.broadcast.emit('userConnected', {_id:_id})
     const updatedUser = await userModel.findByIdAndUpdate( _id, { $set: { status: 'online', socketId:socket.id } },{ new: true });
+  })
+
+  socket.on('userDisconnected', async ({ _id }) => {
+    users.delete(_id);
+    socket.broadcast.emit('userDisconnected', {_id:_id})
+    const updatedUser = await userModel.findByIdAndUpdate( _id, { $set: { status: 'offline', socketId:'' } },{ new: true });
   })
 
   socket.on('userReconnected', async ({ _id }) => {
     users.set(_id, socket.id);
-    socket.broadcast.emit('userConnected', {_id:_id, users: Object.fromEntries(users.entries())})
+    socket.broadcast.emit('userConnected', {_id:_id})
     const updatedUser = await userModel.findByIdAndUpdate( _id, { $set: { status: 'online', socketId:socket.id } },{ new: true });
   })
 
@@ -67,17 +73,71 @@ io.on('connection', (socket) => {
   socket.on('sendMessage', async (msgObject) => {
     const receiverId = msgObject.receiver._id;
     const receiverSocketId = users.get(receiverId);
-    msgObject.read = receiverSocketId ? true : false;
     const newMsg = new messageModel(msgObject);
-    const result = await newMsg.save();
+    const result = await newMsg.save(); 
     
     if (receiverSocketId) {
       socket.to(receiverSocketId).emit('receiveMessage', result);
     } else {
       console.log(`User with ID ${receiverId} is not connected`);
-    }
 
+      await userModel.updateOne(
+        { _id: receiverId },
+        {
+          $inc: { [`missedMessages.${msgObject.sender._id}`]: 1 }
+        },
+        { upsert: true }
+      );
+    
+    }
+ 
   });
+
+  
+  socket.on('setmissedMsg', async({_id, senderId, content})=>{
+
+    await userModel.updateOne(
+      { _id: _id },
+      {
+        $set: {
+          [`missedMessages.${senderId}.lastMsg`]: content // Update the last message
+        },
+        $inc: {
+          [`missedMessages.${senderId}.count`]: 1 // Increment the count
+        }
+      },
+      { upsert: true }
+    );
+
+  })
+
+  socket.on('unsetmissedMsg', async ({ _id, senderId }) => {
+    try {
+      // Remove the senderId key from the missedMessages object
+      await userModel.updateOne(
+        { _id: _id },
+        {
+          $unset: { [`missedMessages.${senderId}`]: "" }
+        }
+      );
+      console.log(`Removed missed messages for senderId ${senderId}`);
+    } catch (error) {
+      console.error("Error removing missed message:", error);
+    }
+  });
+
+ 
+
+
+
+
+
+
+
+
+
+
+
 
 
   socket.on('disconnect', async () => {
@@ -91,10 +151,6 @@ io.on('connection', (socket) => {
       }
     });
   });
-
-
- 
-
 
 
 });

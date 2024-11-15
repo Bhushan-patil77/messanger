@@ -20,6 +20,8 @@ function Register() {
 
         user.socketId=''
         user.status='offline'
+        user.unreadCount=0
+      
 
              fetch(`${backendUrl}/registerUser`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(user) })
             .then((response) => { return response.json() })

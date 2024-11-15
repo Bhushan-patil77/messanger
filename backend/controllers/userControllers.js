@@ -89,18 +89,16 @@ exports.updateRecentChats = async (req, res) => {
 };
 
 exports.clearUnreadMsgsForRecipient = async (req, res) => {
-  const _id = req.body._id;
-  const recipientId=req.body.recipientId
+  const _id = req.body.loggedInUserId;
+  const senderId=req.body.senderId;
  
 
   try {
 
-    const update = { $unset: { [`unreadMessages.${recipientId}`]: "" } };
+    const update = { $unset: { [`missedMessages.${senderId}`]: "" } };
     const result = await userModel.updateOne({ _id: _id }, update);
     if (result.modifiedCount > 0) {
-      res.status(200).json({ message: `Message with ID ${recipientId} removed from unreadMessages.` });
-    } else {
-      res.status(404).json({ error: `Message with ID ${recipientId} not found.` });
+      res.status(200).json({ message: `Message with ID ${_id} removed from unreadMessages.` });
     }
 
    

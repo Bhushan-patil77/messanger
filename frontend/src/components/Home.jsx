@@ -1,12 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { io } from 'socket.io-client';
 import ting from '../assets/pop.mp3'
-const socket = io('https://messanger-1-uudi.onrender.com', {
-  reconnection: true,
-  reconnectionAttempts: 2,
-  reconnectionDelay: 1000,
-  reconnectionDelayMax: 2000,
-});
+const socket = io(import.meta.env.VITE_backend_URL);
 
 
 
@@ -18,6 +13,8 @@ function Home() {
   const [globalMsgObject, setGlobalMsgObject] = useState([])
   const [unreadMsgObj, setUnreadMsgObj] = useState({})
   const [clickedRecentChat, setClickedRecentChat] = useState({})
+
+
   const [clickedUserInfo, setClickedUserInfo] = useState({})
   const [searchedUsers, setSearchedUsers] = useState([]);
   const [message, setMessage] = useState('');
@@ -27,13 +24,16 @@ function Home() {
   const [connectedWithInternet, setConnectedWithInternet] = useState(navigator.onLine);
 
   const audio = new Audio(ting)
- 
-  useEffect(()=>{console.log(unreadMsgObj)},[unreadMsgObj])
+
+  useEffect(()=>{
+    console.log(unreadMsgObj)
+  },[unreadMsgObj])
 
   useEffect(() => {
     const handleOffline = () => {
       console.log('Disconnected from internet');
       setConnectedWithInternet(false);
+      socket.emit('userDisconnected', {_id:loggedInUser._id})
       socket.disconnect();
     };
 
@@ -121,8 +121,7 @@ function Home() {
     promise.then((socketId) => { socket.emit('userConnected', { _id: loggedInUser._id }) })
 
 
-    socket.on('userDisconnected', ({ _id, users }) => {
-      console.log(users)
+    socket.on('userDisconnected', ({ _id }) => {
       setGlobalMsgObject((prevGlobalMsgObject) => {
         const updatedGlobalObj = prevGlobalMsgObject.map((obj) => {
           if (obj.user._id === _id) {
@@ -141,8 +140,7 @@ function Home() {
       })
     })
 
-    socket.on('userConnected', ({ _id, users }) => {
-      console.log(users)
+    socket.on('userConnected', ({ _id }) => {
       setGlobalMsgObject((prevGlobalMsgObject) => {
         const updatedGlobalObj = prevGlobalMsgObject.map((obj) => {
           if (obj.user._id === _id) {
@@ -190,6 +188,7 @@ function Home() {
           return {...prevState, [msgObj.sender._id]: { count: newCount, lastMsg: newContent } };
 
         });
+        socket.emit('setmissedMsg', {_id:loggedInUser._id, senderId:msgObj.sender._id, content:msgObj.content})
       }
 
  
@@ -382,7 +381,7 @@ function Home() {
       .then((response) => { return response.json() })
       .then((data) => {
          setGlobalMsgObject(data.data);
-         setUnreadMsgObj(data.loggedInUserInfo.unreadMessages != undefined ? data.loggedInUserInfo.unreadMessages : {})
+         setUnreadMsgObj(data.loggedInUserInfo.missedMessages != undefined ? data.loggedInUserInfo.missedMessages : {})
         data.data.map((obj)=>{
           if(obj.user._id===clickedUser)
           {
@@ -424,8 +423,8 @@ function Home() {
     localStorage.setItem('user', JSON.stringify(user))
   }
 
-  const clearUnreadMsgsForRecipient = (loggedInUserId, recipientId) => {
-    fetch(`${backendUrl}/clearUnreadMsgsForRecipient`, { method: 'post', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ _id: loggedInUserId, recipientId: recipientId }) })
+  const clearUnreadMsgsForRecipient = (loggedInUserId, senderId) => {
+    fetch(`${backendUrl}/clearUnreadMsgsForRecipient`, { method: 'post', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ loggedInUserId: loggedInUserId, senderId: senderId }) })
       .then((response) => { return response.json() })
       .then((data) => {  })
       .catch((err) => { console.log('Error removing unread msgs for recipient ...') })
@@ -474,7 +473,6 @@ function Home() {
   return (
 
     <div className="flex h-screen  bg-gray-900 text-gray-100">
-      {/* Sidebar (Recent Chats) */}
 
       <div className="w-1/3 border-r border-gray-700 bg-gray-800 ">
 
@@ -492,16 +490,14 @@ function Home() {
           }
         </div>
 
-        {/* Recent Chats List */}
 
 
         <div className=" h-[80%] w-full overflow-y-auto no-scrollbar ">
-          {/* Chat Item */}
 
           {
             globalMsgObject && globalMsgObject.map((obj, index) => {
               const lastMsgTime = new Date(obj.messages[obj.messages.length - 1].createdAt)
-              return <div key={index} className={`p-4  border-b border-gray-700  cursor-pointer hover:bg-gray-700 ${loggedInUser.username === obj.user.username ? 'hidden' : ''} ${clickedUserInfo && clickedUserInfo.username === obj.user.username ? 'bg-gray-700' : ''}  `} onClick={() => { setReceiver(obj.user); clearUnreadMsgsForRecipient(loggedInUser._id, obj.user._id); setClickedRecentChat(obj.user); getRecipient(obj.user._id); localStorage.setItem('clickedUser', obj.user._id); setClickedUserInfo(obj.user); setRecipient(obj.user); setPreviousMessages(obj.messages); localStorage.setItem('clickedUser', obj.user._id) }}>
+              return <div key={index} className={`p-4  border-b border-gray-700  cursor-pointer hover:bg-gray-700 ${loggedInUser.username === obj.user.username ? 'hidden' : ''} ${clickedUserInfo && clickedUserInfo.username === obj.user.username ? 'bg-gray-700' : ''}  `} onClick={() => {socket.emit('unsetmissedMsg', {_id:loggedInUser._id, senderId:obj.user._id}) ;setReceiver(obj.user); clearUnreadMsgsForRecipient(loggedInUser._id, obj.user._id); setClickedRecentChat(obj.user); getRecipient(obj.user._id); localStorage.setItem('clickedUser', obj.user._id); setClickedUserInfo(obj.user); setRecipient(obj.user); setPreviousMessages(obj.messages); localStorage.setItem('clickedUser', obj.user._id) }}>
                 <div className="flex w-full  items-center">
                   <div className={` min-w-12 min-h-12 bg-black rounded-full ${obj.user.status == 'online' || obj.user.status == 'typing...' ? 'border-4 border-green-700' : ''} `} />
                   <div className="ml-3 truncate flex flex-grow flex-col">
