@@ -54,7 +54,7 @@ io.on('connection', (socket) => {
   socket.on('userDisconnected', async ({ _id }) => {
     users.delete(_id);
     socket.broadcast.emit('userDisconnected', {_id:_id})
-    const updatedUser = await userModel.findByIdAndUpdate( _id, { $set: { status: 'offline', socketId:'' } },{ new: true });
+    const updatedUser = await userModel.findByIdAndUpdate( _id, { $set: { status: 'offline', socketId:'', lastSeen: new Date().toISOString() } },{ new: true });
   })
 
   socket.on('userReconnected', async ({ _id }) => {
@@ -146,7 +146,7 @@ io.on('connection', (socket) => {
       {
         users.delete(key);
         socket.broadcast.emit('userDisconnected', {_id:key, users: Object.fromEntries(users.entries())})
-        const updatedUser = await userModel.findByIdAndUpdate( key, { $set: { status: 'offline', socketId:'' } },{ new: true });
+        const updatedUser = await userModel.findByIdAndUpdate( key, { $set: { status: 'offline', socketId:'', lastSeen:new Date().toISOString() } },{ new: true });
 
       }
     });
