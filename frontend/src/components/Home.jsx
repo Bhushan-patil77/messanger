@@ -40,9 +40,18 @@ function Home() {
     const handleOnline = () => {
       console.log('Reconnected to internet');
       setConnectedWithInternet(true);
-      socket.connect(); 
-      socket.emit('userConnected', { _id: loggedInUser._id });
-      getHistory(loggedInUser._id)
+      const promise = new Promise((resolve, reject) => {
+        if (socket.connected) {
+          resolve(socket.id)
+        } else {
+          socket.on('connect', () => {
+            resolve(socket.id)
+          })
+        }
+      })
+  
+      promise.then((socketId) => { socket.emit('userConnected', { _id: loggedInUser._id }) })
+
 
     };
 
@@ -118,7 +127,8 @@ function Home() {
       }
     })
 
-    promise.then((socketId) => { socket.emit('userConnected', { _id: loggedInUser._id }) })
+     
+      promise.then((socketId) => { socket.emit('userConnected', { _id: loggedInUser._id });  getHistory(loggedInUser._id) })
 
 
     socket.on('userDisconnected', ({ _id }) => {
