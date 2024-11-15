@@ -41,7 +41,7 @@ function Home() {
       console.log('Reconnected to internet');
       setConnectedWithInternet(true);
       socket.connect(); 
-      socket.emit('userReconnected', { _id: loggedInUser._id });
+      socket.emit('userConnected', { _id: loggedInUser._id });
       getHistory(loggedInUser._id)
 
     };
@@ -157,6 +157,9 @@ function Home() {
       setClickedUserInfo((prevClickedUserInfo) => {
         return { ...prevClickedUserInfo, status: 'online', lastSeen: '' }
       })
+
+      getHistory(loggedInUser._id)
+      
     })
 
     socket.on('receiveMessage', (msgObj) => {
