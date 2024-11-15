@@ -49,7 +49,7 @@ io.on('connection', (socket) => {
     users.set(_id, socket.id);
     socket.broadcast.emit('userConnected', {_id:_id})
     const updatedUser = await userModel.findByIdAndUpdate( _id, { $set: { status: 'online', socketId:socket.id } },{ new: true });
-  })
+  })  
 
   socket.on('userDisconnected', async ({ _id }) => {
     users.delete(_id);
@@ -68,7 +68,7 @@ io.on('connection', (socket) => {
   socket.on('iAmTyping', ({ _id }) => {
     socket.broadcast.emit('typing', _id)
   })
- 
+  
 
   socket.on('sendMessage', async (msgObject) => {
     const receiverId = msgObject.receiver._id;

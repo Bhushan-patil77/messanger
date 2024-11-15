@@ -32,27 +32,34 @@ function Home() {
   useEffect(() => {
     const handleOffline = () => {
       console.log('Disconnected from internet');
-      setConnectedWithInternet(false);
       socket.emit('userDisconnected', {_id:loggedInUser._id})
       socket.disconnect();
     };
 
     const handleOnline = () => {
       console.log('Reconnected to internet');
-      setConnectedWithInternet(true);
-      const promise = new Promise((resolve, reject) => {
-        if (socket.connected) {
-          resolve(socket.id)
-        } else {
-          socket.on('connect', () => {
-            resolve(socket.id)
-          })
-        }
-      })
+
+      if (!socket.connected) {
+        socket.connect();
+        console.log('Reconnecting to server...');
+
+
+        // const promise = new Promise((resolve, reject) => {
+        //   if (socket.connected) {
+        //     resolve(socket.id)
+        //     console.log('Connected to server');
+        //   } else {
+        //     socket.on('connect', () => {
+        //       console.log('Connected to server');
+        //       resolve(socket.id)
+        //     })
+        //   }
+        // })
+
+
+
+      }
   
-      promise.then((socketId) => { socket.emit('userConnected', { _id: loggedInUser._id }) })
-
-
     };
 
     window.addEventListener('offline', handleOffline);
@@ -69,66 +76,17 @@ function Home() {
 
   useEffect(() => {
 
-    socket.on('user connected', ({ userId }) => {
-      console.log('connected...')
-    });
-
-    socket.on('user disconnected', ({ userId }) => {
-      console.log('disconnected...')
-    });
-
-    socket.on('connect', (socket) => {
-      console.log('Connected to server');
-    });
-
-    socket.on('disconnect', () => {
-      console.log('Disconnected from server');
-    });
-
-    socket.on('reconnect_attempt', () => {
-      console.log('Attempting to reconnect...');
-    });
-
-    socket.on('reconnect_failed', () => {
-      console.log('Reconnection failed');
-    });
-
-    socket.on('reconnect', () => {
-      console.log('user reconnected')
-      socket.emit('userReconnected', { _id: loggedInUser._id });
-    });
-
-    socket.on('users', ({ users }) => {
-      console.log(users)
-    })
-
-    return () => {
-      socket.off('chat message');
-      socket.off('user connected');
-      socket.off('user disconnected');
-      socket.off('connect');
-      socket.off('disconnect');
-      socket.off('reconnect_attempt');
-      socket.off('reconnect_failed');
-      socket.off('reconnect');
-    };
-  }, []);
-
-
-  useEffect(() => {
-
     const promise = new Promise((resolve, reject) => {
       if (socket.connected) {
         resolve(socket.id)
       } else {
         socket.on('connect', () => {
+          console.log('Connected to server');
           resolve(socket.id)
         })
       }
     })
-
-     
-      promise.then((socketId) => { socket.emit('userConnected', { _id: loggedInUser._id });  getHistory(loggedInUser._id) })
+    promise.then((socketId) => { socket.emit('userConnected', { _id: loggedInUser._id });  getHistory(loggedInUser._id) })
 
 
     socket.on('userDisconnected', ({ _id }) => {
@@ -171,6 +129,10 @@ function Home() {
       getHistory(loggedInUser._id)
       
     })
+
+    socket.on('disconnect', () => {
+      console.log('Disconnected from server');
+    });
 
     socket.on('receiveMessage', (msgObj) => {
 
